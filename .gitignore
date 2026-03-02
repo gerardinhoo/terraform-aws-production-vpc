@@ -1,0 +1,10 @@
+# Terraform
+**/.terraform/
+**/.terraform.lock.hcl.backup
+*.tfstate
+*.tfstate.*
+crash.log
+terraform.tfvars
+*.tfvars
+# Mac
+.DS_Store
