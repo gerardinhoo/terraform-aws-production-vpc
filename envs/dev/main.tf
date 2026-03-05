@@ -1,17 +1,15 @@
 terraform {
-  # backend "s3" {
-  #   bucket         = "gerard-terraform-state-2026"
-  #   key            = "dev/terraform.tfstate"
-  #   region         = "us-east-1"
-  #   profile        = "admin-user"
-  #   dynamodb_table = "terraform-locks"
-  #   encrypt        = true
-  # }
+  backend "s3" {
+    bucket         = "gerard-terraform-state-2026"
+    key            = "dev/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-locks"
+    encrypt        = true
+  }
 }
 
 provider "aws" {
-  region  = var.region
-  profile = var.profile
+  region = var.region
 }
 
 resource "aws_launch_template" "app_lt" {
