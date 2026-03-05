@@ -1,6 +1,5 @@
 provider "aws" {
-  region  = var.region
-  profile = var.profile
+  region = var.region
 }
 
 resource "aws_s3_bucket" "terraform_state" {
