@@ -6,45 +6,13 @@
 
 ---
 
-Provisioned a production-style, highly available AWS infrastructure using Terraform with reusable modules. Multi-AZ networking with public/private subnets, an Auto Scaling Group behind an Application Load Balancer, NAT Gateways for private subnet egress, IAM roles for secure SSM access, and remote state management with S3 + DynamoDB locking. Infrastructure is deployed and destroyed via GitHub Actions CI/CD with OIDC authentication — no static credentials.
+Provisioned a production-style, highly available AWS infrastructure using Terraform with reusable modules. Multi-AZ networking with public/private subnets, an Auto Scaling Group behind an Application Load Balancer, NAT Gateways for private subnet egress, IAM roles for secure SSM access, and remote state management with S3 + DynamoDB locking. CloudWatch metric alarms drive auto scaling policies and push notifications to SNS for operational alerting. Infrastructure is deployed and destroyed via GitHub Actions CI/CD with OIDC authentication — no static credentials.
 
 ---
 
 ## Architecture
 
-```
-                         ┌──────────────────────────────────────────────────┐
-                         │               VPC (10.0.0.0/16)                 │
-                         │                                                 │
-     Internet            │   ┌──────────────┐      ┌──────────────┐       │
-        │                │   │ Public Sub A  │      │ Public Sub B  │       │
-        ▼                │   │ 10.0.1.0/24  │      │ 10.0.2.0/24  │       │
-   ┌─────────┐           │   │ us-east-1a   │      │ us-east-1b   │       │
-   │   IGW   │───────────┤   │              │      │              │       │
-   └─────────┘           │   │  ┌───────┐   │      │  ┌───────┐   │       │
-                         │   │  │  ALB  │   │      │  │  ALB  │   │       │
-                         │   │  └───┬───┘   │      │  └───┬───┘   │       │
-                         │   │      │       │      │      │       │       │
-                         │   │  ┌───────┐   │      │  ┌───────┐   │       │
-                         │   │  │NAT GW │   │      │  │NAT GW │   │       │
-                         │   │  └───┬───┘   │      │  └───┬───┘   │       │
-                         │   └──────┼───────┘      └──────┼───────┘       │
-                         │          │                      │               │
-                         │   ┌──────▼───────┐      ┌──────▼───────┐       │
-                         │   │ Private Sub A │      │ Private Sub B │       │
-                         │   │ 10.0.101.0/24│      │ 10.0.102.0/24│       │
-                         │   │ us-east-1a   │      │ us-east-1b   │       │
-                         │   │              │      │              │       │
-                         │   │  ┌────────┐  │      │  ┌────────┐  │       │
-                         │   │  │EC2 (ASG)│  │      │  │EC2 (ASG)│  │       │
-                         │   │  └────────┘  │      │  └────────┘  │       │
-                         │   └──────────────┘      └──────────────┘       │
-                         └──────────────────────────────────────────────────┘
-
-                         ┌──────────────────────────────────────────────────┐
-                         │  Remote State: S3 + DynamoDB Locking            │
-                         └──────────────────────────────────────────────────┘
-```
+![Architecture Diagram](./docs/architecture.png)
 
 ---
 
@@ -67,6 +35,15 @@ Provisioned a production-style, highly available AWS infrastructure using Terraf
 - Application Load Balancer in public subnets
 - Target Group with HTTP health checks (15s interval, 2 healthy/unhealthy thresholds)
 - HTTP listener forwarding to target group
+
+**Auto Scaling Policies**
+- Scale-up policy — adds 1 instance when triggered, 60s cooldown
+- Scale-down policy — removes 1 instance when triggered, 60s cooldown
+
+**Monitoring & Alerting**
+- CloudWatch alarm on ASG average CPU > 70% (2 consecutive periods) → triggers scale-up + SNS notification
+- CloudWatch alarm on ASG average CPU < 20% (2 consecutive periods) → triggers scale-down + SNS notification
+- SNS topic with email subscription for infrastructure alerts
 
 **Security**
 - ALB security group — accepts port 80 from the internet
@@ -162,7 +139,7 @@ Or trigger the `Terraform Destroy` workflow manually in GitHub Actions.
 ## Technologies
 
 - **Terraform** — Infrastructure as Code
-- **AWS** — VPC, EC2, ALB, ASG, IAM, S3, DynamoDB, NAT Gateway, SSM
+- **AWS** — VPC, EC2, ALB, ASG, CloudWatch, SNS, IAM, S3, DynamoDB, NAT Gateway, SSM
 - **GitHub Actions** — CI/CD with OIDC authentication
 
 ---
