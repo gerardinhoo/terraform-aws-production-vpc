@@ -16,6 +16,25 @@ Provisioned a production-style, highly available AWS infrastructure using Terraf
 
 ---
 
+## Screenshots
+
+### GitHub Actions — CI/CD Pipeline
+![CI/CD Pipeline](./docs/screenshots/github-actions-pipeline.png)
+
+### EC2 Instances — Auto Scaling Group
+![ASG Instances](./docs/screenshots/asg-instances.png)
+
+### ALB Target Group — Healthy Targets
+![ALB Healthy Targets](./docs/screenshots/alb-healthy-targets.png)
+
+### CloudWatch Alarms — CPU Monitoring
+![CloudWatch Alarms](./docs/screenshots/cloudwatch-alarms.png)
+
+### S3 — Terraform Remote State
+![S3 Remote State](./docs/screenshots/s3-remote-state.png)
+
+---
+
 ## What This Provisions
 
 **Networking**
